@@ -51,7 +51,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           inline: true,
         },
         {
-          name: '👥 Total Members Joined',
+          name: '👥 Unique Members Invited',
+          value: `${stats.uniqueUsers}`,
+          inline: true,
+        },
+        {
+          name: '📊 Total Joins',
           value: `${stats.totalJoins}`,
           inline: true,
         },

@@ -298,12 +298,23 @@ export class InviteTrackingService {
   async getUserStats(guildId: string, userId: string): Promise<{
     totalInvites: number;
     totalJoins: number;
+    uniqueUsers: number;
     activeInvites: number;
   }> {
     try {
-      const [totalInvites, totalJoins, activeInvites] = await Promise.all([
+      const [totalInvites, totalJoins, uniqueUsersResult, activeInvites] = await Promise.all([
         InviteModel.countDocuments({ guildId, inviterId: userId }),
         JoinRecord.countDocuments({ guildId, inviterId: userId }),
+        // Count unique users
+        JoinRecord.aggregate([
+          { $match: { guildId, inviterId: userId } },
+          {
+            $group: {
+              _id: '$userId',
+            },
+          },
+          { $count: 'uniqueUsers' },
+        ]),
         InviteModel.countDocuments({
           guildId,
           inviterId: userId,
@@ -324,9 +335,12 @@ export class InviteTrackingService {
         }),
       ]);
 
+      const uniqueUsers = uniqueUsersResult[0]?.uniqueUsers || 0;
+
       return {
         totalInvites,
         totalJoins,
+        uniqueUsers,
         activeInvites,
       };
     } catch (error) {
@@ -334,6 +348,7 @@ export class InviteTrackingService {
       return {
         totalInvites: 0,
         totalJoins: 0,
+        uniqueUsers: 0,
         activeInvites: 0,
       };
     }
@@ -345,23 +360,64 @@ export class InviteTrackingService {
   async getLeaderboard(guildId: string, limit: number = 10): Promise<Array<{
     inviterId: string;
     totalJoins: number;
+    uniqueUsers: number;
   }>> {
     try {
+      // Count unique users per inviter
       const leaderboard = await JoinRecord.aggregate([
         { $match: { guildId } },
+        // First group: Get unique inviter-user pairs
         {
           $group: {
-            _id: '$inviterId',
-            totalJoins: { $sum: 1 },
+            _id: {
+              inviterId: '$inviterId',
+              userId: '$userId',
+            },
           },
         },
-        { $sort: { totalJoins: -1 } },
+        // Second group: Count unique users per inviter
+        {
+          $group: {
+            _id: '$_id.inviterId',
+            uniqueUsers: { $sum: 1 },
+          },
+        },
+        // Get total joins count for each inviter
+        {
+          $lookup: {
+            from: 'joinrecords',
+            let: { inviterId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$inviterId', '$$inviterId'] },
+                      { $eq: ['$guildId', guildId] },
+                    ],
+                  },
+                },
+              },
+              { $count: 'total' },
+            ],
+            as: 'totalJoinsData',
+          },
+        },
+        {
+          $addFields: {
+            totalJoins: {
+              $ifNull: [{ $arrayElemAt: ['$totalJoinsData.total', 0] }, 0],
+            },
+          },
+        },
+        { $sort: { uniqueUsers: -1 } },
         { $limit: limit },
       ]);
 
       return leaderboard.map((item) => ({
         inviterId: item._id,
         totalJoins: item.totalJoins,
+        uniqueUsers: item.uniqueUsers,
       }));
     } catch (error) {
       console.error('[InviteTracking] Error getting leaderboard:', error);

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Tracker API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .api-base {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 18px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .endpoint {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .endpoint h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .endpoint p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .success {
+            border-left-color: #4caf50;
+        }
+        .error {
+            border-left-color: #f44336;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get {
+            background: #4caf50;
+            color: white;
+        }
+        .post {
+            background: #2196f3;
+            color: white;
+        }
+        .link {
+            color: #667eea;
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Invite Tracker API Tester</h1>
+        <p class="subtitle">ทดสอบ API Endpoints สำหรับระบบติดตาม Invite</p>
+        
+        <div class="api-base">
+            Base URL: <span id="baseUrl">http://143.14.200.26:3001/api</span>
+        </div>
+
+        <!-- Health Check -->
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> Health Check</h2>
+            <p>ตรวจสอบว่า API และ Database ทำงานอยู่หรือไม่</p>
+            <button onclick="testHealth()">ทดสอบ</button>
+            <div id="health-response" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> Leaderboard</h2>
+            <p>ดูอันดับผู้เชิญ (Top Inviters)</p>
+            <div class="form-group">
+                <label>Guild ID (Server ID):</label>
+                <input type="text" id="leaderboard-guildId" placeholder="เช่น 123456789012345678">
+            </div>
+            <div class="form-group">
+                <label>Limit (จำนวนผลลัพธ์):</label>
+                <input type="number" id="leaderboard-limit" value="10" placeholder="10">
+            </div>
+            <button onclick="testLeaderboard()">ทดสอบ</button>
+            <div id="leaderboard-response" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- User Stats -->
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> User Statistics</h2>
+            <p>ดูสถิติการเชิญของผู้ใช้</p>
+            <div class="form-group">
+                <label>User ID:</label>
+                <input type="text" id="stats-userId" placeholder="เช่น 123456789012345678">
+            </div>
+            <div class="form-group">
+                <label>Guild ID (optional):</label>
+                <input type="text" id="stats-guildId" placeholder="เช่น 123456789012345678">
+            </div>
+            <button onclick="testStats()">ทดสอบ</button>
+            <div id="stats-response" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- User Invites -->
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> User Invites</h2>
+            <p>ดูรายการ Invite Links ของผู้ใช้</p>
+            <div class="form-group">
+                <label>User ID:</label>
+                <input type="text" id="invites-userId" placeholder="เช่น 123456789012345678">
+            </div>
+            <div class="form-group">
+                <label>Guild ID (optional):</label>
+                <input type="text" id="invites-guildId" placeholder="เช่น 123456789012345678">
+            </div>
+            <button onclick="testInvites()">ทดสอบ</button>
+            <div id="invites-response" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Debug -->
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> Debug</h2>
+            <p>ดูข้อมูลใน Database สำหรับ Guild</p>
+            <div class="form-group">
+                <label>Guild ID:</label>
+                <input type="text" id="debug-guildId" placeholder="เช่น 123456789012345678">
+            </div>
+            <button onclick="testDebug()">ทดสอบ</button>
+            <div id="debug-response" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-detect API URL based on current host
+        const currentHost = window.location.hostname;
+        const baseUrl = `http://${currentHost}:3001/api`;
+
+        function showResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'response ' + (isError ? 'error' : 'success');
+            element.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+
+        async function testHealth() {
+            try {
+                const response = await fetch(`${baseUrl}/health`);
+                const data = await response.json();
+                showResponse('health-response', data, !response.ok);
+            } catch (error) {
+                showResponse('health-response', { error: error.message }, true);
+            }
+        }
+
+        async function testLeaderboard() {
+            const guildId = document.getElementById('leaderboard-guildId').value;
+            const limit = document.getElementById('leaderboard-limit').value || '10';
+            
+            if (!guildId) {
+                alert('กรุณากรอก Guild ID');
+                return;
+            }
+
+            try {
+                const url = `${baseUrl}/leaderboard?guildId=${guildId}&limit=${limit}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                showResponse('leaderboard-response', data, !response.ok);
+            } catch (error) {
+                showResponse('leaderboard-response', { error: error.message }, true);
+            }
+        }
+
+        async function testStats() {
+            const userId = document.getElementById('stats-userId').value;
+            const guildId = document.getElementById('stats-guildId').value;
+            
+            if (!userId) {
+                alert('กรุณากรอก User ID');
+                return;
+            }
+
+            try {
+                let url = `${baseUrl}/stats/${userId}`;
+                if (guildId) {
+                    url += `?guildId=${guildId}`;
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                showResponse('stats-response', data, !response.ok);
+            } catch (error) {
+                showResponse('stats-response', { error: error.message }, true);
+            }
+        }
+
+        async function testInvites() {
+            const userId = document.getElementById('invites-userId').value;
+            const guildId = document.getElementById('invites-guildId').value;
+            
+            if (!userId) {
+                alert('กรุณากรอก User ID');
+                return;
+            }
+
+            try {
+                let url = `${baseUrl}/invites/${userId}`;
+                if (guildId) {
+                    url += `?guildId=${guildId}`;
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                showResponse('invites-response', data, !response.ok);
+            } catch (error) {
+                showResponse('invites-response', { error: error.message }, true);
+            }
+        }
+
+        async function testDebug() {
+            const guildId = document.getElementById('debug-guildId').value;
+            
+            if (!guildId) {
+                alert('กรุณากรอก Guild ID');
+                return;
+            }
+
+            try {
+                const url = `${baseUrl}/debug/${guildId}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                showResponse('debug-response', data, !response.ok);
+            } catch (error) {
+                showResponse('debug-response', { error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>

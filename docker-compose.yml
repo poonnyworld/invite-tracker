@@ -5,7 +5,7 @@ services:
     container_name: invite-tracker-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       MONGO_INITDB_DATABASE: honorbot
     volumes:

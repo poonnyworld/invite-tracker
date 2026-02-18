@@ -42,11 +42,12 @@
 
 ### 🌐 API Server
 - 📝 **Record Joins** - POST endpoint for recording joins
-- 📊 **Get Statistics** - GET endpoint for viewing invite statistics
-- 🏆 **Leaderboard** - GET endpoint for viewing leaderboard
+- 📊 **Get Statistics** - GET endpoint for viewing invite statistics (supports unique users count)
+- 🏆 **Leaderboard** - GET endpoint for viewing leaderboard (counts unique users)
 - 🔗 **List Invites** - GET endpoint for viewing user's invite links
+- 👥 **Join Records** - GET endpoint for viewing detailed join records per inviter
 - 🔒 **API Key Authentication** - Secure API with API key protection
-- 📈 **Google Sheets Integration** - Support for sending data to Google Sheets
+- 📈 **Google Sheets Integration** - Support for multi-sheet Google Sheets integration
 
 ---
 
@@ -78,7 +79,8 @@ invite-tracker-system/
 │   └── README.md
 ├── docker-compose.yml            # Docker Compose configuration
 ├── docker-compose.prod.yml       # Production override
-├── google-sheets-script.js       # Google Apps Script example
+├── google-sheets-script.js       # Google Apps Script for multi-sheet integration
+├── api-test.html                 # API testing interface
 ├── GOOGLE_SHEETS_INTEGRATION.md  # Google Sheets integration guide
 └── README.md                     # This file
 ```
@@ -222,6 +224,29 @@ MONGO_URI=mongodb://mongodb:27017/honorbot
 - 📘 [Bot Documentation](./bot/README.md) - Bot usage guide
 - 🌐 [API Documentation](./api/README.md) - API endpoints and usage
 - 📊 [Google Sheets Integration](./GOOGLE_SHEETS_INTEGRATION.md) - Google Sheets integration guide
+
+### 📊 Google Sheets Integration
+
+ระบบรองรับการเชื่อมต่อกับ Google Sheets เพื่อแสดงข้อมูลการเชิญแบบหลายชีท:
+
+1. **Summary Sheet**: แสดงสรุปการเชิญทั้งหมด พร้อมคอลัมน์ "Name"
+2. **Individual User Sheets**: สร้างชีทแยกสำหรับแต่ละผู้ใช้ แสดงรายละเอียดว่าเชิญใครมาบ้าง เวลาไหนบ้าง
+
+**วิธีตั้งค่า:**
+1. เปิด Google Sheet → Extensions → Apps Script
+2. Copy โค้ดจาก `google-sheets-script.js`
+3. แก้ไข `API_URL` และ `GUILD_ID` ให้ตรงกับของคุณ
+4. รัน function `updateAllSheets()` เพื่อสร้างชีททั้งหมด
+5. รัน `createTrigger5Minutes()` เพื่อตั้งค่าอัปเดตอัตโนมัติทุก 5 นาที
+
+ดูรายละเอียดเพิ่มเติมที่ [Google Sheets Integration Guide](./GOOGLE_SHEETS_INTEGRATION.md)
+
+### 🧪 API Testing
+
+ใช้ไฟล์ `api-test.html` เพื่อทดสอบ API endpoints:
+1. เปิดไฟล์ `api-test.html` ในเบราว์เซอร์
+2. แก้ไข Base URL ถ้าจำเป็น (default: `http://localhost:3001/api`)
+3. ทดสอบ endpoints ต่างๆ ได้ทันที
 
 ---
 
@@ -388,8 +413,9 @@ http://localhost:3001/api
 |--------|----------|-------------|---------------|
 | `POST` | `/joins` | Record a member join | ✅ Yes |
 | `GET` | `/stats/:userId` | Get user statistics | ❌ No |
-| `GET` | `/leaderboard` | Get invite leaderboard | ❌ No |
+| `GET` | `/leaderboard` | Get invite leaderboard (unique users) | ❌ No |
 | `GET` | `/invites/:userId` | Get user's invites | ❌ No |
+| `GET` | `/joins/:inviterId` | Get join records for inviter | ❌ No |
 | `GET` | `/health` | Health check | ❌ No |
 | `GET` | `/debug/:guildId` | Debug endpoint | ❌ No |
 | `GET` | `/sheets/:guildId` | Google Sheets data | ❌ No |
@@ -437,9 +463,15 @@ See more details at [Bot Documentation](./bot/README.md)
 
 The dashboard automatically displays in the configured channel (`INVITE_DASHBOARD_CHANNEL_ID`) showing:
 
-- 🏆 **Top 10 Inviters** - Users who invited the most members
+- 🏆 **Top 10 Inviters** - Users who invited the most unique members
 - 📈 **Total Statistics** - Overall statistics
 - 🔄 **Auto Updates** - Updates automatically every 5 minutes
+
+### 📊 Invite Counting Logic
+
+- **Unique Users**: Each user is counted only once, even if they join multiple times
+- **Total Joins**: Total number of join events (includes multiple joins by same user)
+- Example: If user A joins once and user B joins twice → Unique Users = 2, Total Joins = 3
 
 ---
 
@@ -470,6 +502,13 @@ The dashboard automatically displays in the configured channel (`INVITE_DASHBOAR
 - ✅ Check logs: `docker-compose logs -f invite-tracker-api`
 - ✅ Check MongoDB connection
 - ✅ Check `API_SECRET_KEY` for authenticated endpoints
+- ✅ Use `api-test.html` for interactive API testing
+
+### Port Conflicts
+
+- ✅ If MongoDB port 27017 is already in use, change port mapping in `docker-compose.yml`
+- ✅ If API port 3001 conflicts, change `API_PORT` in `api/.env`
+- ✅ For VPS deployment, ensure firewall allows necessary ports
 
 ### MongoDB Connection Issues
 

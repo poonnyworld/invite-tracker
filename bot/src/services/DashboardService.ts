@@ -78,6 +78,7 @@ export class DashboardService {
               displayName,
               userId,
               totalJoins: item.totalJoins,
+              uniqueUsers: item.uniqueUsers,
             };
           } catch {
             return {
@@ -85,6 +86,7 @@ export class DashboardService {
               displayName: 'Unknown User',
               userId: item.inviterId,
               totalJoins: item.totalJoins,
+              uniqueUsers: item.uniqueUsers,
             };
           }
         })
@@ -111,7 +113,7 @@ export class DashboardService {
             const nameDisplay = item.displayName !== item.username && item.displayName !== 'Unknown User'
               ? `${item.displayName} (@${item.username})`
               : `@${item.username}`;
-            return `${medal} **${nameDisplay}** • ${item.totalJoins} invites`;
+            return `${medal} **${nameDisplay}** • ${item.uniqueUsers} invites`;
           })
           .join('\n');
 

@@ -93,9 +93,19 @@ router.get('/stats/:userId', async (req: Request, res: Response) => {
       matchQuery.guildId = guildId;
     }
 
-    const [totalInvites, totalJoins, activeInvites] = await Promise.all([
+    const [totalInvites, totalJoins, uniqueUsersResult, activeInvites] = await Promise.all([
       Invite.countDocuments(matchQuery),
       JoinRecord.countDocuments(matchQuery),
+      // Count unique users
+      JoinRecord.aggregate([
+        { $match: matchQuery },
+        {
+          $group: {
+            _id: '$userId',
+          },
+        },
+        { $count: 'uniqueUsers' },
+      ]),
       Invite.countDocuments({
         ...matchQuery,
         $and: [
@@ -115,13 +125,16 @@ router.get('/stats/:userId', async (req: Request, res: Response) => {
       }),
     ]);
 
+    const uniqueUsers = uniqueUsersResult[0]?.uniqueUsers || 0;
+
     res.json({
       success: true,
       data: {
         userId,
         totalInvites, // จำนวน Invite Links ที่สร้าง
-        invitedMembers: totalJoins, // จำนวนผู้ใช้ที่เชิญได้ (จำนวนคนที่ join จาก invites ของคนนี้)
-        totalJoins, // Alias สำหรับ backward compatibility
+        invitedMembers: uniqueUsers, // จำนวนผู้ใช้ที่เชิญได้ (unique users - แต่ละคนนับแค่ 1 ครั้ง)
+        totalJoins, // จำนวนครั้งที่ join ทั้งหมด (รวมคนที่ join หลายครั้ง)
+        uniqueUsers, // จำนวน unique users
         activeInvites, // จำนวน Invite Links ที่ยังใช้งานได้
       },
     });
@@ -154,15 +167,54 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
       });
     }
 
+    // Count unique users per inviter (not total joins)
     const leaderboard = await JoinRecord.aggregate([
       { $match: { guildId } },
+      // First group: Get unique inviter-user pairs
       {
         $group: {
-          _id: '$inviterId',
-          totalJoins: { $sum: 1 },
+          _id: {
+            inviterId: '$inviterId',
+            userId: '$userId',
+          },
         },
       },
-      { $sort: { totalJoins: -1 } },
+      // Second group: Count unique users per inviter
+      {
+        $group: {
+          _id: '$_id.inviterId',
+          uniqueUsers: { $sum: 1 }, // Count unique users
+        },
+      },
+      // Get total joins count for each inviter
+      {
+        $lookup: {
+          from: 'joinrecords',
+          let: { inviterId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$inviterId', '$$inviterId'] },
+                    { $eq: ['$guildId', guildId] },
+                  ],
+                },
+              },
+            },
+            { $count: 'total' },
+          ],
+          as: 'totalJoinsData',
+        },
+      },
+      {
+        $addFields: {
+          totalJoins: {
+            $ifNull: [{ $arrayElemAt: ['$totalJoinsData.total', 0] }, 0],
+          },
+        },
+      },
+      { $sort: { uniqueUsers: -1 } },
       { $limit: limitNum },
     ]);
 
@@ -170,8 +222,9 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
       success: true,
       data: leaderboard.map((item) => ({
         inviterId: item._id,
-        invitedMembers: item.totalJoins, // จำนวนผู้ใช้ที่เชิญได้
-        totalJoins: item.totalJoins, // Alias สำหรับ backward compatibility
+        invitedMembers: item.uniqueUsers, // จำนวนผู้ใช้ที่เชิญได้ (unique users)
+        totalJoins: item.totalJoins, // จำนวนครั้งที่ join ทั้งหมด
+        uniqueUsers: item.uniqueUsers, // จำนวน unique users
       })),
     });
   } catch (error) {
@@ -219,6 +272,48 @@ router.get('/invites/:userId', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get invites',
+    });
+  }
+});
+
+// GET /api/joins/:inviterId - Get join records for a specific inviter
+router.get('/joins/:inviterId', async (req: Request, res: Response) => {
+  try {
+    if (mongoose.connection.readyState !== MONGODB_CONNECTED) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database not connected',
+      });
+    }
+
+    const { inviterId } = req.params;
+    const { guildId } = req.query;
+
+    if (!inviterId) {
+      return res.status(400).json({
+        success: false,
+        error: 'inviterId is required',
+      });
+    }
+
+    const query: any = { inviterId };
+    if (guildId) {
+      query.guildId = guildId;
+    }
+
+    const joinRecords = await JoinRecord.find(query)
+      .sort({ joinedAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: joinRecords,
+    });
+  } catch (error) {
+    console.error('[API] Error getting join records:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get join records',
     });
   }
 });
@@ -296,16 +391,54 @@ router.get('/sheets/:guildId', async (req: Request, res: Response) => {
     const { limit = '100' } = req.query;
     const limitNum = parseInt(limit as string, 10);
 
-    // Get leaderboard
+    // Get leaderboard (count unique users)
     const leaderboard = await JoinRecord.aggregate([
       { $match: { guildId } },
+      // First group: Get unique inviter-user pairs
       {
         $group: {
-          _id: '$inviterId',
-          totalJoins: { $sum: 1 },
+          _id: {
+            inviterId: '$inviterId',
+            userId: '$userId',
+          },
         },
       },
-      { $sort: { totalJoins: -1 } },
+      // Second group: Count unique users per inviter
+      {
+        $group: {
+          _id: '$_id.inviterId',
+          uniqueUsers: { $sum: 1 },
+        },
+      },
+      // Get total joins count for each inviter
+      {
+        $lookup: {
+          from: 'joinrecords',
+          let: { inviterId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$inviterId', '$$inviterId'] },
+                    { $eq: ['$guildId', guildId] },
+                  ],
+                },
+              },
+            },
+            { $count: 'total' },
+          ],
+          as: 'totalJoinsData',
+        },
+      },
+      {
+        $addFields: {
+          totalJoins: {
+            $ifNull: [{ $arrayElemAt: ['$totalJoinsData.total', 0] }, 0],
+          },
+        },
+      },
+      { $sort: { uniqueUsers: -1 } },
       { $limit: limitNum },
     ]);
 
@@ -313,7 +446,8 @@ router.get('/sheets/:guildId', async (req: Request, res: Response) => {
     const csvData = leaderboard.map((item, index) => ({
       rank: index + 1,
       inviterId: item._id,
-      invitedMembers: item.totalJoins,
+      invitedMembers: item.uniqueUsers, // Use unique users count
+      totalJoins: item.totalJoins, // Total joins count
     }));
 
     // Return as CSV or JSON based on Accept header
@@ -321,8 +455,8 @@ router.get('/sheets/:guildId', async (req: Request, res: Response) => {
     if (acceptHeader.includes('text/csv')) {
       // CSV format
       const csv = [
-        'Rank,User ID,Invited Members',
-        ...csvData.map((row) => `${row.rank},${row.inviterId},${row.invitedMembers}`),
+        'Rank,User ID,Invited Members,Total Joins',
+        ...csvData.map((row) => `${row.rank},${row.inviterId},${row.invitedMembers},${row.totalJoins}`),
       ].join('\n');
 
       res.setHeader('Content-Type', 'text/csv');
@@ -333,7 +467,7 @@ router.get('/sheets/:guildId', async (req: Request, res: Response) => {
       res.json({
         success: true,
         data: csvData,
-        headers: ['Rank', 'User ID', 'Invited Members'],
+        headers: ['Rank', 'User ID', 'Invited Members', 'Total Joins'],
       });
     }
   } catch (error) {
