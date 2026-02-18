@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**ระบบติดตามการเข้าร่วมเซิร์ฟเวอร์ Discord จาก Invite Links พร้อม Dashboard และ API Server**
+**Discord server join tracking system from Invite Links with Dashboard and API Server**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -14,10 +14,10 @@
 
 ---
 
-## 📋 สารบัญ
+## 📋 Table of Contents
 
 - [✨ Features](#-features)
-- [🏗️ โครงสร้างโปรเจค](#️-โครงสร้างโปรเจค)
+- [🏗️ Project Structure](#️-project-structure)
 - [🚀 Quick Start](#-quick-start)
 - [⚙️ Configuration](#️-configuration)
 - [📖 Documentation](#-documentation)
@@ -33,24 +33,24 @@
 ## ✨ Features
 
 ### 🤖 Discord Bot
-- 🔗 **Auto Invite Tracking** - ติดตาม Invite Links ที่ผู้ใช้สร้างอัตโนมัติ
-- 👥 **Join Detection** - บันทึกการเข้าร่วมเซิร์ฟเวอร์เมื่อมีคนใช้ Invite
-- 📊 **Dashboard Display** - แสดง Leaderboard Top Inviters ในช่องข้อความ
-- 📈 **Statistics Command** - คำสั่ง `/invite-stats` สำหรับดูสถิติการเชิญ
-- 🔄 **Auto Updates** - Dashboard อัปเดตอัตโนมัติทุก 5 นาที
-- 🔄 **Sync Command** - คำสั่ง `/sync-invites` สำหรับ sync invites จากเซิร์ฟเวอร์
+- 🔗 **Auto Invite Tracking** - Automatically tracks Invite Links created by users
+- 👥 **Join Detection** - Records server joins when someone uses an Invite
+- 📊 **Dashboard Display** - Shows Top Inviters Leaderboard in a text channel
+- 📈 **Statistics Command** - `/invite-stats` command to view invite statistics
+- 🔄 **Auto Updates** - Dashboard updates automatically every 5 minutes
+- 🔄 **Sync Command** - `/sync-invites` command to sync invites from server
 
 ### 🌐 API Server
-- 📝 **Record Joins** - POST endpoint สำหรับบันทึกการเข้าร่วม
-- 📊 **Get Statistics** - GET endpoint สำหรับดูสถิติการเชิญ
-- 🏆 **Leaderboard** - GET endpoint สำหรับดู leaderboard
-- 🔗 **List Invites** - GET endpoint สำหรับดู invite links ของผู้ใช้
-- 🔒 **API Key Authentication** - ป้องกัน API ด้วย API key
-- 📈 **Google Sheets Integration** - รองรับการส่งข้อมูลไปยัง Google Sheets
+- 📝 **Record Joins** - POST endpoint for recording joins
+- 📊 **Get Statistics** - GET endpoint for viewing invite statistics
+- 🏆 **Leaderboard** - GET endpoint for viewing leaderboard
+- 🔗 **List Invites** - GET endpoint for viewing user's invite links
+- 🔒 **API Key Authentication** - Secure API with API key protection
+- 📈 **Google Sheets Integration** - Support for sending data to Google Sheets
 
 ---
 
-## 🏗️ โครงสร้างโปรเจค
+## 🏗️ Project Structure
 
 ```
 invite-tracker-system/
@@ -89,10 +89,10 @@ invite-tracker-system/
 
 ### Prerequisites
 
-- **Node.js** 18+ (สำหรับ development)
-- **Docker** และ **Docker Compose** (สำหรับ deployment)
-- **MongoDB** (local หรือ Atlas)
-- **Discord Bot Token** ([สร้างได้ที่นี่](https://discord.com/developers/applications))
+- **Node.js** 18+ (for development)
+- **Docker** and **Docker Compose** (for deployment)
+- **MongoDB** (local or Atlas)
+- **Discord Bot Token** ([Create one here](https://discord.com/developers/applications))
 
 ### 1️⃣ Clone Repository
 
@@ -108,7 +108,7 @@ cd invite-tracker
 ```bash
 cd bot
 cp .env.example .env
-nano .env  # หรือใช้ editor อื่นๆ
+nano .env  # or use your preferred editor
 ```
 
 **Required Variables:**
@@ -136,15 +136,15 @@ API_SECRET_KEY=your_api_secret_key_here
 
 ### 3️⃣ Setup Discord Bot
 
-1. ไปที่ [Discord Developer Portal](https://discord.com/developers/applications)
-2. สร้าง Application ใหม่
-3. ไปที่ **Bot** section และสร้าง bot
-4. คัดลอก Bot Token ไปใส่ใน `bot/.env`
-5. เปิดใช้งาน **Privileged Gateway Intents**:
-   - ✅ **Server Members Intent** (จำเป็นสำหรับ tracking joins)
-   - ✅ **Message Content Intent** (optional)
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create a new application
+3. Go to **Bot** section and create a bot
+4. Copy the bot token to `bot/.env`
+5. Enable **Privileged Gateway Intents**:
+   - ✅ **Server Members Intent** (Required for tracking joins)
+   - ✅ **Message Content Intent** (Optional)
 
-6. เชิญ Bot เข้าเซิร์ฟเวอร์ด้วย URL นี้ (แทนที่ `YOUR_CLIENT_ID`):
+6. Invite bot to your server using this URL (replace `YOUR_CLIENT_ID`):
    ```
    https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=2048&scope=bot%20applications.commands
    ```
@@ -152,7 +152,7 @@ API_SECRET_KEY=your_api_secret_key_here
 ### 4️⃣ Run with Docker Compose
 
 ```bash
-# จากโฟลเดอร์ invite-tracker-system/
+# From invite-tracker-system/ directory
 docker-compose up -d --build
 ```
 
@@ -164,10 +164,10 @@ docker-compose exec invite-tracker-bot node dist/deploy-commands.js
 
 ### 6️⃣ Verify Installation
 
-- ✅ Bot ควรจะ online ในเซิร์ฟเวอร์ Discord
-- ✅ Dashboard ควรจะแสดงในช่องที่กำหนด (`INVITE_DASHBOARD_CHANNEL_ID`)
-- ✅ API ควรจะทำงานที่ `http://localhost:3001`
-- ✅ ตรวจสอบ health: `curl http://localhost:3001/api/health`
+- ✅ Bot should be online in your Discord server
+- ✅ Dashboard should display in the configured channel (`INVITE_DASHBOARD_CHANNEL_ID`)
+- ✅ API should be running at `http://localhost:3001`
+- ✅ Check health: `curl http://localhost:3001/api/health`
 
 ---
 
@@ -219,9 +219,9 @@ MONGO_URI=mongodb://mongodb:27017/honorbot
 
 ## 📖 Documentation
 
-- 📘 [Bot Documentation](./bot/README.md) - คำแนะนำการใช้งาน Bot
-- 🌐 [API Documentation](./api/README.md) - API endpoints และการใช้งาน
-- 📊 [Google Sheets Integration](./GOOGLE_SHEETS_INTEGRATION.md) - การเชื่อมต่อกับ Google Sheets
+- 📘 [Bot Documentation](./bot/README.md) - Bot usage guide
+- 🌐 [API Documentation](./api/README.md) - API endpoints and usage
+- 📊 [Google Sheets Integration](./GOOGLE_SHEETS_INTEGRATION.md) - Google Sheets integration guide
 
 ---
 
@@ -323,9 +323,9 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ### MongoDB Setup on VPS
 
 **Option A: MongoDB Atlas (Recommended)**
-- สร้างบัญชีที่ [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- สร้าง cluster และคัดลอก connection string
-- อัปเดต `MONGO_URI` ใน `.env`
+- Create account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- Create cluster and copy connection string
+- Update `MONGO_URI` in `.env`
 
 **Option B: Docker MongoDB**
 ```bash
@@ -394,7 +394,7 @@ http://localhost:3001/api
 | `GET` | `/debug/:guildId` | Debug endpoint | ❌ No |
 | `GET` | `/sheets/:guildId` | Google Sheets data | ❌ No |
 
-ดูรายละเอียดเพิ่มเติมที่ [API Documentation](./api/README.md)
+See more details at [API Documentation](./api/README.md)
 
 ---
 
@@ -402,10 +402,10 @@ http://localhost:3001/api
 
 ### `/invite-stats [user]`
 
-ดูสถิติการเชิญของคุณหรือผู้ใช้คนอื่น
+View invite statistics for yourself or another user.
 
 **Options:**
-- `user` (optional): ผู้ใช้ที่ต้องการดูสถิติ (default: คุณ)
+- `user` (optional): User to view stats for (default: you)
 
 **Example:**
 ```
@@ -415,13 +415,13 @@ http://localhost:3001/api
 
 ### `/sync-invites [clear-test-data] [test-guild-id]` (Admin Only)
 
-Sync invites ปัจจุบันจากเซิร์ฟเวอร์ไปยัง database
+Sync current invites from server to database.
 
 **Permissions Required:** Manage Server
 
 **Options:**
-- `clear-test-data` (optional): ลบข้อมูลจาก test server (default: false)
-- `test-guild-id` (optional): Test server Guild ID (required ถ้า clear-test-data เป็น true)
+- `clear-test-data` (optional): Clear data from test server (default: false)
+- `test-guild-id` (optional): Test server Guild ID (required if clear-test-data is true)
 
 **Example:**
 ```
@@ -429,54 +429,54 @@ Sync invites ปัจจุบันจากเซิร์ฟเวอร์�
 /sync-invites clear-test-data:true test-guild-id:123456789012345678
 ```
 
-ดูรายละเอียดเพิ่มเติมที่ [Bot Documentation](./bot/README.md)
+See more details at [Bot Documentation](./bot/README.md)
 
 ---
 
 ## 📊 Dashboard
 
-Dashboard จะแสดงอัตโนมัติในช่องที่กำหนด (`INVITE_DASHBOARD_CHANNEL_ID`) โดยแสดง:
+The dashboard automatically displays in the configured channel (`INVITE_DASHBOARD_CHANNEL_ID`) showing:
 
-- 🏆 **Top 10 Inviters** - ผู้ใช้ที่เชิญคนได้มากที่สุด
-- 📈 **Total Statistics** - สถิติรวมทั้งหมด
-- 🔄 **Auto Updates** - อัปเดตอัตโนมัติทุก 5 นาที
+- 🏆 **Top 10 Inviters** - Users who invited the most members
+- 📈 **Total Statistics** - Overall statistics
+- 🔄 **Auto Updates** - Updates automatically every 5 minutes
 
 ---
 
 ## ❓ Troubleshooting
 
-### Bot ไม่ทำงาน
+### Bot Not Working
 
-- ✅ ตรวจสอบว่า `DISCORD_TOKEN` ถูกต้อง
-- ✅ ตรวจสอบว่า Bot มี **Server Members Intent** เปิดอยู่
-- ✅ ตรวจสอบว่า Bot มี permission ที่จำเป็นในเซิร์ฟเวอร์
-- ✅ ตรวจสอบ MongoDB connection
+- ✅ Check that `DISCORD_TOKEN` is correct
+- ✅ Check that bot has **Server Members Intent** enabled
+- ✅ Check that bot has necessary permissions in server
+- ✅ Check MongoDB connection
 
-### Dashboard ไม่แสดง
+### Dashboard Not Displaying
 
-- ✅ ตรวจสอบว่า `INVITE_DASHBOARD_CHANNEL_ID` ถูกต้อง
-- ✅ ตรวจสอบว่า Bot มี permission ส่งข้อความในช่องนั้น
-- ✅ ตรวจสอบ logs: `docker-compose logs -f invite-tracker-bot`
+- ✅ Check that `INVITE_DASHBOARD_CHANNEL_ID` is correct
+- ✅ Check that bot has permission to send messages in that channel
+- ✅ Check logs: `docker-compose logs -f invite-tracker-bot`
 
-### Commands ไม่ทำงาน
+### Commands Not Working
 
 - ✅ Deploy commands: `docker-compose exec invite-tracker-bot node dist/deploy-commands.js`
-- ✅ ตรวจสอบว่า Bot มี `applications.commands` scope เมื่อเชิญ
-- ✅ รอสักครู่สำหรับ global commands (อาจใช้เวลาถึง 1 ชั่วโมง)
+- ✅ Check that bot has `applications.commands` scope when invited
+- ✅ Wait a few minutes for global commands (may take up to 1 hour)
 
-### API ไม่ทำงาน
+### API Not Working
 
-- ✅ ตรวจสอบว่า API server ทำงาน: `curl http://localhost:3001/api/health`
-- ✅ ตรวจสอบ logs: `docker-compose logs -f invite-tracker-api`
-- ✅ ตรวจสอบ MongoDB connection
-- ✅ ตรวจสอบ `API_SECRET_KEY` สำหรับ authenticated endpoints
+- ✅ Check that API server is running: `curl http://localhost:3001/api/health`
+- ✅ Check logs: `docker-compose logs -f invite-tracker-api`
+- ✅ Check MongoDB connection
+- ✅ Check `API_SECRET_KEY` for authenticated endpoints
 
 ### MongoDB Connection Issues
 
-- ✅ ตรวจสอบว่า MongoDB ทำงาน: `docker-compose ps mongodb`
-- ✅ ตรวจสอบ connection string ใน `.env`
-- ✅ สำหรับ Docker: ใช้ `mongodb://mongodb:27017/honorbot`
-- ✅ สำหรับ local: ใช้ `mongodb://localhost:27017/honorbot`
+- ✅ Check that MongoDB is running: `docker-compose ps mongodb`
+- ✅ Check connection string in `.env`
+- ✅ For Docker: use `mongodb://mongodb:27017/honorbot`
+- ✅ For local: use `mongodb://localhost:27017/honorbot`
 
 ---
 
@@ -488,7 +488,7 @@ ISC
 
 ## 🙏 Credits
 
-สร้างด้วย ❤️ โดยใช้:
+Built with ❤️ using:
 - [Discord.js](https://discord.js.org/) - Discord API library
 - [Express.js](https://expressjs.com/) - Web framework
 - [MongoDB](https://www.mongodb.com/) - Database
