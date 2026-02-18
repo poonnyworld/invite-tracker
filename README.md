@@ -209,8 +209,10 @@ MONGO_URI=mongodb://localhost:27017/honorbot
 
 **MongoDB Atlas (Cloud):**
 ```env
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/honorbot
+MONGO_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/honorbot
 ```
+
+**Note:** Replace `YOUR_USERNAME`, `YOUR_PASSWORD`, and `YOUR_CLUSTER` with your actual MongoDB Atlas credentials.
 
 **Docker (automatically set by docker-compose.yml):**
 ```env
