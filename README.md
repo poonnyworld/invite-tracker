@@ -214,16 +214,19 @@ MONGO_URI=mongodb://localhost:27017/honorbot
 
 **MongoDB Atlas (Cloud):**
 
+Get your connection string from MongoDB Atlas Dashboard:
+1. Go to MongoDB Atlas Dashboard
+2. Click **Connect** → **Connect your application**
+3. Copy the connection string
+4. Replace `<password>` and `<database>` with your actual values
+
 ```env
-# Get connection string from MongoDB Atlas Dashboard
-# Format: mongodb+srv://<username>:<password>@<cluster-host>/<database>
-# Example structure (replace with your actual values):
-MONGO_URI=mongodb+srv://username_here:password_here@cluster0.xxxxx.mongodb.net/honorbot
+# Example (DO NOT use this exact string - get yours from MongoDB Atlas):
+# MONGO_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/honorbot
+MONGO_URI=your_mongodb_atlas_connection_string_here
 ```
 
-**Note:** 
-- Get your connection string from MongoDB Atlas Dashboard → Connect → Connect your application
-- Replace `username_here`, `password_here`, `cluster0.xxxxx.mongodb.net` with your actual credentials
+**Important:** Never commit your actual MongoDB credentials to Git!
 
 **Docker (automatically set by docker-compose.yml):**
 
