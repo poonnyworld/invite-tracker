@@ -145,7 +145,7 @@ function onOpen() {
 ถ้า API server รองรับ CSV format:
 
 ```excel
-=IMPORTDATA("http://localhost:3001/api/sheets/1441409446126424100?format=csv")
+=IMPORTDATA("http://localhost:3001/api/sheets/YOUR_GUILD_ID?format=csv")
 ```
 
 **หมายเหตุ:** Google Sheets ไม่สามารถเรียก `localhost` ได้ ต้องใช้ public URL
@@ -158,7 +158,7 @@ function onOpen() {
 
 2. **ใช้ใน Sheet:**
 ```excel
-=IMPORTJSON("http://your-api-url/api/leaderboard?guildId=1441409446126424100&limit=10", "/data", "noHeaders")
+=IMPORTJSON("http://your-api-url/api/leaderboard?guildId=YOUR_GUILD_ID&limit=10", "/data", "noHeaders")
 ```
 
 ## วิธีที่ 4: ใช้ Google Sheets API จาก Server
