@@ -255,9 +255,18 @@ MONGO_URI=mongodb://mongodb:27017/honorbot
 
 1. เปิด Google Sheet → Extensions → Apps Script
 2. Copy โค้ดจาก `google-sheets-script.js`
-3. แก้ไข `API_URL` และ `GUILD_ID` ให้ตรงกับของคุณ
+3. แก้ไข `API_URL` และ `GUILD_ID` ให้ตรงกับของคุณ:
+   ```javascript
+   const API_URL = 'http://YOUR_SERVER_IP:3001';
+   const GUILD_ID = 'YOUR_DISCORD_GUILD_ID';
+   ```
 4. รัน function `updateAllSheets()` เพื่อสร้างชีททั้งหมด
 5. รัน `createTrigger5Minutes()` เพื่อตั้งค่าอัปเดตอัตโนมัติทุก 5 นาที
+
+**หมายเหตุ:**
+- ต้องแก้ไข `API_URL` และ `GUILD_ID` ให้เป็นค่าจริง (ไม่ใช่ placeholder)
+- ตรวจสอบว่า `ALLOWED_ORIGINS` ใน `api/.env` มี `https://script.google.com`
+- ใช้ Execution Logs ใน Google Apps Script เพื่อ debug
 
 ดูรายละเอียดเพิ่มเติมที่ [Google Sheets Integration Guide](./GOOGLE_SHEETS_INTEGRATION.md)
 
@@ -441,16 +450,18 @@ http://localhost:3001/api
 
 ### Endpoints
 
-| Method | Endpoint            | Description                           | Auth Required |
-| ------ | ------------------- | ------------------------------------- | ------------- |
-| `POST` | `/joins`            | Record a member join                  | ✅ Yes        |
-| `GET`  | `/stats/:userId`    | Get user statistics                   | ❌ No         |
-| `GET`  | `/leaderboard`      | Get invite leaderboard (unique users) | ❌ No         |
-| `GET`  | `/invites/:userId`  | Get user's invites                    | ❌ No         |
-| `GET`  | `/joins/:inviterId` | Get join records for inviter          | ❌ No         |
-| `GET`  | `/health`           | Health check                          | ❌ No         |
-| `GET`  | `/debug/:guildId`   | Debug endpoint                        | ❌ No         |
-| `GET`  | `/sheets/:guildId`  | Google Sheets data                    | ❌ No         |
+| Method | Endpoint                | Description                                      | Auth Required |
+| ------ | ----------------------- | ------------------------------------------------ | ------------- |
+| `POST` | `/joins`                | Record a member join                             | ✅ Yes        |
+| `GET`  | `/stats/:userId`        | Get user statistics (unique users + total joins) | ❌ No         |
+| `GET`  | `/stats/:userId/history` | Get historical stats with date range              | ❌ No         |
+| `GET`  | `/leaderboard`          | Get invite leaderboard (unique users)             | ❌ No         |
+| `GET`  | `/invites/:userId`      | Get user's invites                               | ❌ No         |
+| `GET`  | `/joins/:inviterId`     | Get join records for inviter (with date filter)  | ❌ No         |
+| `GET`  | `/history/:guildId`     | Get all join history for guild (with filters)    | ❌ No         |
+| `GET`  | `/health`               | Health check                                     | ❌ No         |
+| `GET`  | `/debug/:guildId`       | Debug endpoint                                   | ❌ No         |
+| `GET`  | `/sheets/:guildId`      | Google Sheets data (CSV/JSON format)             | ❌ No         |
 
 See more details at [API Documentation](./api/README.md)
 
