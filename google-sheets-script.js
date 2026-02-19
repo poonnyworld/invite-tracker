@@ -79,23 +79,38 @@ function fetchJoinRecords(inviterId) {
   try {
     const url = `${API_URL}/api/joins/${inviterId}?guildId=${GUILD_ID}`;
     
+    Logger.log(`Fetching join records for inviterId: ${inviterId}, URL: ${url}`);
+    
     const response = UrlFetchApp.fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      muteHttpExceptions: true, // Don't throw on HTTP errors
     });
     
-    const data = JSON.parse(response.getContentText());
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    Logger.log(`Response code: ${responseCode}, Response: ${responseText.substring(0, 200)}`);
+    
+    if (responseCode !== 200) {
+      Logger.log(`Error: HTTP ${responseCode} - ${responseText}`);
+      return [];
+    }
+    
+    const data = JSON.parse(responseText);
     
     if (data.success && data.data) {
+      Logger.log(`Successfully fetched ${data.data.length} join records for inviterId: ${inviterId}`);
       return data.data;
     } else {
-      Logger.log('Error: ' + JSON.stringify(data));
+      Logger.log('Error in response: ' + JSON.stringify(data));
       return [];
     }
   } catch (error) {
     Logger.log('Error fetching join records: ' + error.toString());
+    Logger.log('Stack trace: ' + error.stack);
     return [];
   }
 }
@@ -244,6 +259,8 @@ function updateUserSheet(spreadsheet, inviterId, username) {
   const sheetName = sanitizeSheetName(username || inviterId);
   const sheet = getOrCreateSheet(spreadsheet, sheetName);
   
+  Logger.log(`Updating user sheet: ${sheetName} (inviterId: ${inviterId})`);
+  
   // Clear existing data
   sheet.clear();
   
@@ -255,8 +272,12 @@ function updateUserSheet(spreadsheet, inviterId, username) {
   // Fetch join records
   const joinRecords = fetchJoinRecords(inviterId);
   
+  Logger.log(`Found ${joinRecords.length} join records for inviterId: ${inviterId}`);
+  
   if (joinRecords.length === 0) {
     sheet.getRange(2, 1).setValue('No join records available');
+    sheet.getRange(2, 2).setValue(`(Checked for inviterId: ${inviterId})`);
+    Logger.log(`No join records found for inviterId: ${inviterId}`);
     return;
   }
   
