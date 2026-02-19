@@ -200,7 +200,7 @@ function updateSummarySheet() {
       i + 1,                                    // Rank
       username,                                 // Name
       item.inviterId,                          // User ID
-      item.invitedMembers || item.totalJoins,  // Invited Members
+      item.invitedMembers || item.uniqueUsers || item.totalJoins || 0,  // Invited Members (unique users)
       stats ? stats.totalInvites : '-',        // Total Invites
       stats ? stats.activeInvites : '-',       // Active Invites
       new Date(),                              // Last Updated

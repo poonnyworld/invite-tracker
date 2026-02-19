@@ -19,9 +19,15 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (like mobile apps, curl, Postman, Google Apps Script)
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        // Log for debugging
+        console.log(`[CORS] Blocked origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
