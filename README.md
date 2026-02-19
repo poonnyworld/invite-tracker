@@ -33,6 +33,7 @@
 ## ✨ Features
 
 ### 🤖 Discord Bot
+
 - 🔗 **Auto Invite Tracking** - Automatically tracks Invite Links created by users
 - 👥 **Join Detection** - Records server joins when someone uses an Invite
 - 📊 **Dashboard Display** - Shows Top Inviters Leaderboard in a text channel
@@ -41,6 +42,7 @@
 - 🔄 **Sync Command** - `/sync-invites` command to sync invites from server
 
 ### 🌐 API Server
+
 - 📝 **Record Joins** - POST endpoint for recording joins
 - 📊 **Get Statistics** - GET endpoint for viewing invite statistics (supports unique users count)
 - 🏆 **Leaderboard** - GET endpoint for viewing leaderboard (counts unique users)
@@ -114,6 +116,7 @@ nano .env  # or use your preferred editor
 ```
 
 **Required Variables:**
+
 ```env
 DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_client_id_here
@@ -131,6 +134,7 @@ nano .env
 ```
 
 **Required Variables:**
+
 ```env
 MONGO_URI=mongodb://localhost:27017/honorbot
 API_SECRET_KEY=your_api_secret_key_here
@@ -179,42 +183,50 @@ docker-compose exec invite-tracker-bot node dist/deploy-commands.js
 
 #### Bot (`bot/.env`)
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `DISCORD_TOKEN` | Discord bot token | ✅ Yes | - |
-| `CLIENT_ID` | Discord application client ID | ✅ Yes | - |
-| `GUILD_ID` | Discord server (guild) ID | ⚠️ Optional | - |
-| `INVITE_DASHBOARD_CHANNEL_ID` | Channel ID for dashboard | ✅ Yes | - |
-| `MONGO_URI` | MongoDB connection string | ✅ Yes | - |
-| `API_URL` | API server URL | ❌ No | - |
-| `API_SECRET_KEY` | API secret key | ❌ No | - |
-| `NODE_ENV` | Environment | ❌ No | `development` |
+| Variable                      | Description                   | Required    | Default       |
+| ----------------------------- | ----------------------------- | ----------- | ------------- |
+| `DISCORD_TOKEN`               | Discord bot token             | ✅ Yes      | -             |
+| `CLIENT_ID`                   | Discord application client ID | ✅ Yes      | -             |
+| `GUILD_ID`                    | Discord server (guild) ID     | ⚠️ Optional | -             |
+| `INVITE_DASHBOARD_CHANNEL_ID` | Channel ID for dashboard      | ✅ Yes      | -             |
+| `MONGO_URI`                   | MongoDB connection string     | ✅ Yes      | -             |
+| `API_URL`                     | API server URL                | ❌ No       | -             |
+| `API_SECRET_KEY`              | API secret key                | ❌ No       | -             |
+| `NODE_ENV`                    | Environment                   | ❌ No       | `development` |
 
 #### API (`api/.env`)
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `API_PORT` | Port for API server | ❌ No | `3001` |
-| `MONGO_URI` | MongoDB connection string | ✅ Yes | - |
-| `API_SECRET_KEY` | Secret key for API auth | ✅ Yes | - |
-| `ALLOWED_ORIGINS` | CORS allowed origins | ❌ No | `localhost:3000,3001` |
-| `NODE_ENV` | Environment | ❌ No | `development` |
+| Variable          | Description               | Required | Default               |
+| ----------------- | ------------------------- | -------- | --------------------- |
+| `API_PORT`        | Port for API server       | ❌ No    | `3001`                |
+| `MONGO_URI`       | MongoDB connection string | ✅ Yes   | -                     |
+| `API_SECRET_KEY`  | Secret key for API auth   | ✅ Yes   | -                     |
+| `ALLOWED_ORIGINS` | CORS allowed origins      | ❌ No    | `localhost:3000,3001` |
+| `NODE_ENV`        | Environment               | ❌ No    | `development`         |
 
 ### MongoDB Connection Strings
 
 **Local MongoDB:**
+
 ```env
 MONGO_URI=mongodb://localhost:27017/honorbot
 ```
 
 **MongoDB Atlas (Cloud):**
+
 ```env
-MONGO_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/honorbot
+# Get connection string from MongoDB Atlas Dashboard
+# Format: mongodb+srv://<username>:<password>@<cluster-host>/<database>
+# Example structure (replace with your actual values):
+MONGO_URI=mongodb+srv://username_here:password_here@cluster0.xxxxx.mongodb.net/honorbot
 ```
 
-**Note:** Replace `YOUR_USERNAME`, `YOUR_PASSWORD`, and `YOUR_CLUSTER` with your actual MongoDB Atlas credentials.
+**Note:** 
+- Get your connection string from MongoDB Atlas Dashboard → Connect → Connect your application
+- Replace `username_here`, `password_here`, `cluster0.xxxxx.mongodb.net` with your actual credentials
 
 **Docker (automatically set by docker-compose.yml):**
+
 ```env
 MONGO_URI=mongodb://mongodb:27017/honorbot
 ```
@@ -235,6 +247,7 @@ MONGO_URI=mongodb://mongodb:27017/honorbot
 2. **Individual User Sheets**: สร้างชีทแยกสำหรับแต่ละผู้ใช้ แสดงรายละเอียดว่าเชิญใครมาบ้าง เวลาไหนบ้าง
 
 **วิธีตั้งค่า:**
+
 1. เปิด Google Sheet → Extensions → Apps Script
 2. Copy โค้ดจาก `google-sheets-script.js`
 3. แก้ไข `API_URL` และ `GUILD_ID` ให้ตรงกับของคุณ
@@ -246,6 +259,7 @@ MONGO_URI=mongodb://mongodb:27017/honorbot
 ### 🧪 API Testing
 
 ใช้ไฟล์ `api-test.html` เพื่อทดสอบ API endpoints:
+
 1. เปิดไฟล์ `api-test.html` ในเบราว์เซอร์
 2. แก้ไข Base URL ถ้าจำเป็น (default: `http://localhost:3001/api`)
 3. ทดสอบ endpoints ต่างๆ ได้ทันที
@@ -301,18 +315,21 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ### Option 1: Docker Compose (Recommended)
 
 1. **Clone repository:**
+
    ```bash
    git clone https://github.com/poonnyworld/invite-tracker.git
    cd invite-tracker
    ```
 
 2. **Configure environment:**
+
    ```bash
    cd bot && cp .env.example .env && nano .env
    cd ../api && cp .env.example .env && nano .env
    ```
 
 3. **Start services:**
+
    ```bash
    docker-compose up -d --build
    ```
@@ -325,17 +342,20 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ### Option 2: PM2
 
 1. **Install PM2:**
+
    ```bash
    npm install -g pm2
    ```
 
 2. **Build projects:**
+
    ```bash
    cd bot && npm install && npm run build
    cd ../api && npm install && npm run build
    ```
 
 3. **Start with PM2:**
+
    ```bash
    cd bot && pm2 start ecosystem.config.js
    cd ../api && pm2 start ecosystem.config.js
@@ -350,11 +370,13 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ### MongoDB Setup on VPS
 
 **Option A: MongoDB Atlas (Recommended)**
+
 - Create account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 - Create cluster and copy connection string
 - Update `MONGO_URI` in `.env`
 
 **Option B: Docker MongoDB**
+
 ```bash
 docker run -d \
   --name mongodb \
@@ -389,6 +411,7 @@ npm run dev
 ### Available Scripts
 
 #### Bot Scripts
+
 - `npm run dev` - Run bot in development mode with hot reload
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Run production build
@@ -396,6 +419,7 @@ npm run dev
 - `npm run deploy:prod` - Deploy slash commands (production)
 
 #### API Scripts
+
 - `npm run dev` - Run API in development mode with hot reload
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Run production build
@@ -405,22 +429,23 @@ npm run dev
 ## 📊 API Endpoints
 
 ### Base URL
+
 ```
 http://localhost:3001/api
 ```
 
 ### Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/joins` | Record a member join | ✅ Yes |
-| `GET` | `/stats/:userId` | Get user statistics | ❌ No |
-| `GET` | `/leaderboard` | Get invite leaderboard (unique users) | ❌ No |
-| `GET` | `/invites/:userId` | Get user's invites | ❌ No |
-| `GET` | `/joins/:inviterId` | Get join records for inviter | ❌ No |
-| `GET` | `/health` | Health check | ❌ No |
-| `GET` | `/debug/:guildId` | Debug endpoint | ❌ No |
-| `GET` | `/sheets/:guildId` | Google Sheets data | ❌ No |
+| Method | Endpoint            | Description                           | Auth Required |
+| ------ | ------------------- | ------------------------------------- | ------------- |
+| `POST` | `/joins`            | Record a member join                  | ✅ Yes        |
+| `GET`  | `/stats/:userId`    | Get user statistics                   | ❌ No         |
+| `GET`  | `/leaderboard`      | Get invite leaderboard (unique users) | ❌ No         |
+| `GET`  | `/invites/:userId`  | Get user's invites                    | ❌ No         |
+| `GET`  | `/joins/:inviterId` | Get join records for inviter          | ❌ No         |
+| `GET`  | `/health`           | Health check                          | ❌ No         |
+| `GET`  | `/debug/:guildId`   | Debug endpoint                        | ❌ No         |
+| `GET`  | `/sheets/:guildId`  | Google Sheets data                    | ❌ No         |
 
 See more details at [API Documentation](./api/README.md)
 
@@ -433,9 +458,11 @@ See more details at [API Documentation](./api/README.md)
 View invite statistics for yourself or another user.
 
 **Options:**
+
 - `user` (optional): User to view stats for (default: you)
 
 **Example:**
+
 ```
 /invite-stats
 /invite-stats user:@username
@@ -448,10 +475,12 @@ Sync current invites from server to database.
 **Permissions Required:** Manage Server
 
 **Options:**
+
 - `clear-test-data` (optional): Clear data from test server (default: false)
 - `test-guild-id` (optional): Test server Guild ID (required if clear-test-data is true)
 
 **Example:**
+
 ```
 /sync-invites
 /sync-invites clear-test-data:true test-guild-id:123456789012345678
@@ -530,6 +559,7 @@ ISC
 ## 🙏 Credits
 
 Built with ❤️ using:
+
 - [Discord.js](https://discord.js.org/) - Discord API library
 - [Express.js](https://expressjs.com/) - Web framework
 - [MongoDB](https://www.mongodb.com/) - Database

@@ -161,8 +161,109 @@ GET /api/leaderboard?guildId=111111111111111111&limit=20
 
 **Field Descriptions:**
 - `inviterId`: Discord User ID ของผู้เชิญ
-- `invitedMembers`: จำนวนผู้ใช้ที่เชิญได้ (จำนวนคนที่ join จาก invites ของคนนี้)
-- `totalJoins`: Alias ของ `invitedMembers` (สำหรับ backward compatibility)
+- `invitedMembers`: จำนวนผู้ใช้ที่เชิญได้ (unique users - แต่ละคนนับแค่ 1 ครั้ง)
+- `totalJoins`: จำนวนครั้งที่ join ทั้งหมด (รวมคนที่ join หลายครั้ง)
+- `uniqueUsers`: จำนวน unique users (เหมือน `invitedMembers`)
+
+### GET `/api/joins/:inviterId`
+
+Get join records (history) for a specific inviter.
+
+**Query Parameters:**
+- `guildId` (optional): Filter by guild ID
+- `startDate` (optional): Start date filter (ISO 8601 format, e.g., `2024-01-01T00:00:00.000Z`)
+- `endDate` (optional): End date filter (ISO 8601 format)
+- `limit` (optional): Limit number of results
+
+**Example:**
+```
+GET /api/joins/123456789012345678?guildId=111111111111111111&startDate=2024-01-01&limit=100
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "userId": "987654321098765432",
+      "inviterId": "123456789012345678",
+      "inviteCode": "abc123",
+      "guildId": "111111111111111111",
+      "joinedAt": "2024-01-01T00:00:00.000Z",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+### GET `/api/history/:guildId`
+
+Get all join history for a guild with optional filters.
+
+**Query Parameters:**
+- `startDate` (optional): Start date filter (ISO 8601 format)
+- `endDate` (optional): End date filter (ISO 8601 format)
+- `inviterId` (optional): Filter by specific inviter
+- `limit` (optional): Limit number of results
+
+**Example:**
+```
+GET /api/history/111111111111111111?startDate=2024-01-01&endDate=2024-01-31
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "userId": "987654321098765432",
+      "inviterId": "123456789012345678",
+      "inviteCode": "abc123",
+      "guildId": "111111111111111111",
+      "joinedAt": "2024-01-15T00:00:00.000Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+### GET `/api/stats/:userId/history`
+
+Get historical statistics for a user within a date range.
+
+**Query Parameters:**
+- `guildId` (optional): Filter by guild ID
+- `startDate` (optional): Start date filter (ISO 8601 format)
+- `endDate` (optional): End date filter (ISO 8601 format)
+
+**Example:**
+```
+GET /api/stats/123456789012345678/history?guildId=111111111111111111&startDate=2024-01-01&endDate=2024-01-31
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "123456789012345678",
+    "totalInvites": 10,
+    "invitedMembers": 5,
+    "totalJoins": 8,
+    "uniqueUsers": 5,
+    "activeInvites": 3,
+    "dateRange": {
+      "startDate": "2024-01-01",
+      "endDate": "2024-01-31"
+    }
+  }
+}
+```
 
 ### GET `/api/invites/:userId`
 
