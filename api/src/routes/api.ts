@@ -287,7 +287,7 @@ router.get('/joins/:inviterId', async (req: Request, res: Response) => {
     }
 
     const { inviterId } = req.params;
-    const { guildId, startDate, endDate, limit } = req.query;
+    const { guildId } = req.query;
 
     if (!inviterId) {
       return res.status(400).json({
@@ -301,185 +301,19 @@ router.get('/joins/:inviterId', async (req: Request, res: Response) => {
       query.guildId = guildId;
     }
 
-    // Filter by date range if provided
-    if (startDate || endDate) {
-      query.joinedAt = {};
-      if (startDate) {
-        query.joinedAt.$gte = new Date(startDate as string);
-      }
-      if (endDate) {
-        query.joinedAt.$lte = new Date(endDate as string);
-      }
-    }
-
-    const limitNum = limit ? parseInt(limit as string, 10) : undefined;
     const joinRecords = await JoinRecord.find(query)
       .sort({ joinedAt: -1 })
-      .limit(limitNum || 0)
       .lean();
 
     res.json({
       success: true,
       data: joinRecords,
-      count: joinRecords.length,
     });
   } catch (error) {
     console.error('[API] Error getting join records:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get join records',
-    });
-  }
-});
-
-// GET /api/history/:guildId - Get all join history for a guild with date filtering
-router.get('/history/:guildId', async (req: Request, res: Response) => {
-  try {
-    if (mongoose.connection.readyState !== MONGODB_CONNECTED) {
-      return res.status(503).json({
-        success: false,
-        error: 'Database not connected',
-      });
-    }
-
-    const { guildId } = req.params;
-    const { startDate, endDate, inviterId, limit } = req.query;
-
-    if (!guildId) {
-      return res.status(400).json({
-        success: false,
-        error: 'guildId is required',
-      });
-    }
-
-    const query: any = { guildId };
-    
-    // Filter by inviter if provided
-    if (inviterId) {
-      query.inviterId = inviterId;
-    }
-
-    // Filter by date range if provided
-    if (startDate || endDate) {
-      query.joinedAt = {};
-      if (startDate) {
-        query.joinedAt.$gte = new Date(startDate as string);
-      }
-      if (endDate) {
-        query.joinedAt.$lte = new Date(endDate as string);
-      }
-    }
-
-    const limitNum = limit ? parseInt(limit as string, 10) : undefined;
-    const joinRecords = await JoinRecord.find(query)
-      .sort({ joinedAt: -1 })
-      .limit(limitNum || 0)
-      .lean();
-
-    res.json({
-      success: true,
-      data: joinRecords,
-      count: joinRecords.length,
-    });
-  } catch (error) {
-    console.error('[API] Error getting history:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to get history',
-    });
-  }
-});
-
-// GET /api/stats/:userId/history - Get historical statistics for a user
-router.get('/stats/:userId/history', async (req: Request, res: Response) => {
-  try {
-    if (mongoose.connection.readyState !== MONGODB_CONNECTED) {
-      return res.status(503).json({
-        success: false,
-        error: 'Database not connected',
-      });
-    }
-
-    const { userId } = req.params;
-    const { guildId, startDate, endDate } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        error: 'userId is required',
-      });
-    }
-
-    const matchQuery: any = { inviterId: userId };
-    if (guildId) {
-      matchQuery.guildId = guildId;
-    }
-
-    // Filter by date range if provided
-    if (startDate || endDate) {
-      matchQuery.joinedAt = {};
-      if (startDate) {
-        matchQuery.joinedAt.$gte = new Date(startDate as string);
-      }
-      if (endDate) {
-        matchQuery.joinedAt.$lte = new Date(endDate as string);
-      }
-    }
-
-    const [totalInvites, totalJoins, uniqueUsersResult, activeInvites] = await Promise.all([
-      Invite.countDocuments(matchQuery),
-      JoinRecord.countDocuments(matchQuery),
-      // Count unique users
-      JoinRecord.aggregate([
-        { $match: matchQuery },
-        {
-          $group: {
-            _id: '$userId',
-          },
-        },
-        { $count: 'uniqueUsers' },
-      ]),
-      Invite.countDocuments({
-        ...matchQuery,
-        $and: [
-          {
-            $or: [
-              { maxUses: null },
-              { $expr: { $lt: ['$uses', '$maxUses'] } },
-            ],
-          },
-          {
-            $or: [
-              { expiresAt: null },
-              { expiresAt: { $gt: new Date() } },
-            ],
-          },
-        ],
-      }),
-    ]);
-
-    const uniqueUsers = uniqueUsersResult[0]?.uniqueUsers || 0;
-
-    res.json({
-      success: true,
-      data: {
-        userId,
-        totalInvites,
-        invitedMembers: uniqueUsers,
-        totalJoins,
-        uniqueUsers,
-        activeInvites,
-        dateRange: {
-          startDate: startDate || null,
-          endDate: endDate || null,
-        },
-      },
-    });
-  } catch (error) {
-    console.error('[API] Error getting historical stats:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to get historical stats',
     });
   }
 });

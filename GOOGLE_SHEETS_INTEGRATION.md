@@ -19,7 +19,7 @@
 ```javascript
 // Configuration
 const API_URL = 'http://localhost:3001'; // หรือ URL ของ API server
-const GUILD_ID = '1441409446126424100'; // Discord Guild ID ของคุณ
+const GUILD_ID = 'YOUR_DISCORD_GUILD_ID'; // Discord Guild ID ของคุณ
 
 /**
  * Fetch invite leaderboard from API
@@ -219,8 +219,8 @@ async function updateGoogleSheet(guildId: string) {
 
 | Rank | User ID | Invited Members | Last Updated |
 |------|---------|-----------------|--------------|
-| 1 | 314323353429213185 | 2 | 2026-02-18 21:00:00 |
-| 2 | 123456789012345678 | 1 | 2026-02-18 21:00:00 |
+| 1 | 123456789012345678 | 2 | 2026-02-18 21:00:00 |
+| 2 | 987654321098765432 | 1 | 2026-02-18 21:00:00 |
 
 ## Troubleshooting
 

@@ -10,8 +10,8 @@
  */
 
 // ========== CONFIGURATION ==========
-const API_URL = 'http://143.14.200.26:3001'; // Change to your API URL (use public URL, not localhost)
-const GUILD_ID = '1098556040439660616'; // Your Discord Guild ID
+const API_URL = 'http://YOUR_SERVER_IP:3001'; // Change to your API URL (use public URL, not localhost)
+const GUILD_ID = 'YOUR_DISCORD_GUILD_ID'; // Your Discord Guild ID
 const DISCORD_BOT_TOKEN = ''; // Optional: Discord Bot Token for fetching usernames (leave empty if not available)
 
 // ========== FUNCTIONS ==========

@@ -221,8 +221,8 @@ Get your connection string from MongoDB Atlas Dashboard:
 4. Replace `<password>` and `<database>` with your actual values
 
 ```env
-# Example (DO NOT use this exact string - get yours from MongoDB Atlas):
-# MONGO_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/honorbot
+# Get your connection string from MongoDB Atlas Dashboard
+# Format: mongodb+srv://<username>:<password>@<cluster-host>/<database>
 MONGO_URI=your_mongodb_atlas_connection_string_here
 ```
 
