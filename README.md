@@ -84,6 +84,8 @@ invite-tracker-system/
 ├── google-sheets-script.js       # Google Apps Script for multi-sheet integration
 ├── api-test.html                 # API testing interface
 ├── GOOGLE_SHEETS_INTEGRATION.md  # Google Sheets integration guide
+├── GOOGLE_SHEETS_TROUBLESHOOTING.md  # Troubleshooting guide for Google Sheets
+├── INDIVIDUAL_SHEETS_FIX.md     # Fix guide for individual sheets
 └── README.md                     # This file
 ```
 
@@ -537,10 +539,19 @@ The dashboard automatically displays in the configured channel (`INVITE_DASHBOAR
 - ✅ Check MongoDB connection
 - ✅ Check `API_SECRET_KEY` for authenticated endpoints
 - ✅ Use `api-test.html` for interactive API testing
+- ✅ Rebuild API container if new endpoints are added: `docker-compose up -d --build invite-tracker-api`
+
+### Google Sheets Not Updating
+
+- ✅ Check that `API_URL` and `GUILD_ID` are set correctly in Google Apps Script (not placeholders)
+- ✅ Check that `ALLOWED_ORIGINS` in `api/.env` includes `https://script.google.com`
+- ✅ Check Execution Logs in Google Apps Script (View → Logs)
+- ✅ Test API connection: Run `testConnection()` function in Google Apps Script
+- ✅ Verify API is accessible from outside: `curl http://YOUR_SERVER_IP:3001/api/health`
 
 ### Port Conflicts
 
-- ✅ If MongoDB port 27017 is already in use, change port mapping in `docker-compose.yml`
+- ✅ If MongoDB port 27017 is already in use, change port mapping in `docker-compose.yml` (default: 27018)
 - ✅ If API port 3001 conflicts, change `API_PORT` in `api/.env`
 - ✅ For VPS deployment, ensure firewall allows necessary ports
 
