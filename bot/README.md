@@ -39,7 +39,7 @@ Edit `.env`:
 DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_client_id_here
 GUILD_ID=your_guild_id_here
-INVITE_DASHBOARD_CHANNEL_ID=your_dashboard_channel_id_here
+INVITE_UI_CHANNEL_ID=your_dashboard_channel_id_here
 MONGO_URI=mongodb://localhost:27017/honorbot
 ```
 
@@ -70,7 +70,7 @@ https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=20
 ### 5. Create Dashboard Channel
 
 1. Create a text channel in your Discord server (e.g., `#invite-dashboard`)
-2. Copy the channel ID and add it to `.env` as `INVITE_DASHBOARD_CHANNEL_ID`
+2. Copy the channel ID and add it to `.env` as `INVITE_UI_CHANNEL_ID`
 3. Make sure the bot has permission to send messages in this channel
 
 ### 6. Deploy Slash Commands
@@ -138,7 +138,7 @@ Sync current server invites to database. Useful when migrating from test server 
 
 ## Dashboard
 
-The dashboard automatically displays in the configured channel (`INVITE_DASHBOARD_CHANNEL_ID`) showing:
+The dashboard automatically displays in the configured channel (`INVITE_UI_CHANNEL_ID`) showing:
 
 - Top 10 users who invited the most members
 - Total invites created
@@ -159,7 +159,7 @@ The dashboard automatically displays in the configured channel (`INVITE_DASHBOAR
 | `DISCORD_TOKEN` | Discord bot token | Yes |
 | `CLIENT_ID` | Discord application client ID | Yes |
 | `GUILD_ID` | Discord server (guild) ID | Yes |
-| `INVITE_DASHBOARD_CHANNEL_ID` | Channel ID for dashboard display | Yes |
+| `INVITE_UI_CHANNEL_ID` | Channel ID for dashboard display | Yes |
 | `MONGO_URI` | MongoDB connection string | Yes |
 | `API_URL` | API server URL (optional) | No |
 | `API_SECRET_KEY` | API secret key (optional) | No |
@@ -194,7 +194,7 @@ Stores join records:
 
 ### Dashboard not updating
 
-- Check that `INVITE_DASHBOARD_CHANNEL_ID` is set correctly
+- Check that `INVITE_UI_CHANNEL_ID` is set correctly
 - Verify the bot has permission to send/edit messages in the channel
 - Check bot logs for errors
 

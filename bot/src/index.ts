@@ -1,7 +1,8 @@
 import { Client, Collection, GatewayIntentBits, Events } from 'discord.js';
 import { connectDB, isDBConnected } from './utils/connectDB';
 import { InviteTrackingService } from './services/InviteTrackingService';
-import { DashboardService } from './services/DashboardService';
+import { InviteUIService } from './services/InviteUIService';
+import { LeaderboardChannelService } from './services/LeaderboardChannelService';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import dotenv from 'dotenv';
@@ -80,8 +81,75 @@ const loadEvents = async () => {
   }
 };
 
-// Handle interactions (slash commands)
+// Handle interactions (slash commands and buttons)
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton()) {
+    const guild = interaction.guild;
+    if (!guild) {
+      await interaction.reply({ content: '❌ This can only be used in a server.', ephemeral: true });
+      return;
+    }
+    const trackingService = (client as any).inviteTrackingService;
+    if (!trackingService) {
+      await interaction.reply({ content: '❌ Invite tracking is not ready.', ephemeral: true });
+      return;
+    }
+    const userId = interaction.user.id;
+
+    if (interaction.customId === 'invite_ui_check_link') {
+      const existing = await trackingService.getPersonalInviteForUser(guild.id, userId);
+      await interaction.reply({
+        content: existing
+          ? `Your personal invite link: ${existing.url}`
+          : 'You don\'t have a personal invite link yet. Click "Generate invite link" to create one.',
+        ephemeral: true,
+      });
+      return;
+    }
+
+    if (interaction.customId === 'invite_ui_my_count') {
+      const stats = await trackingService.getUserStats(guild.id, userId);
+      await interaction.reply({
+        content: `You have invited **${stats.uniqueUsers}** member(s).`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    if (interaction.customId === 'generate_invite_link') {
+      try {
+        const existing = await trackingService.getPersonalInviteForUser(guild.id, userId);
+        if (existing) {
+          await interaction.reply({
+            content: `You already created a link. You cannot create another.\nYour link: ${existing.url}`,
+            ephemeral: true,
+          });
+          return;
+        }
+        const result = await trackingService.createPersonalInvite(guild, userId);
+        if (!result) {
+          await interaction.reply({
+            content: '❌ Could not create invite link (you may already have one, or no channel is available for creating invites).',
+            ephemeral: true,
+          });
+          return;
+        }
+        await interaction.reply({
+          content: `✅ Your personal invite link: ${result.url}\nUse this link so we can track how many people you invite.`,
+          ephemeral: true,
+        });
+      } catch (error) {
+        console.error('[generate_invite_link] Error:', error);
+        await interaction.reply({
+          content: '❌ An error occurred while creating the link.',
+          ephemeral: true,
+        }).catch(() => {});
+      }
+      return;
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
@@ -119,10 +187,15 @@ client.once(Events.ClientReady, async (readyClient) => {
   const trackingService = new InviteTrackingService(apiUrl);
   (readyClient as any).inviteTrackingService = trackingService;
 
-  // Initialize dashboard service
-  const dashboardService = new DashboardService(readyClient, trackingService);
-  dashboardService.start();
-  (readyClient as any).dashboardService = dashboardService;
+  // Initialize invite UI (log + control buttons) in INVITE_UI_CHANNEL_ID
+  const inviteUIService = new InviteUIService(readyClient, trackingService);
+  inviteUIService.start();
+  (readyClient as any).inviteUIService = inviteUIService;
+
+  // Initialize leaderboard channel service (INVITE_LEADERBOARD_CHANNEL_ID)
+  const leaderboardChannelService = new LeaderboardChannelService(readyClient, trackingService);
+  leaderboardChannelService.start();
+  (readyClient as any).leaderboardChannelService = leaderboardChannelService;
 
   // Initialize invite tracking for all guilds
   for (const [guildId, guild] of readyClient.guilds.cache) {

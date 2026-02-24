@@ -16,9 +16,9 @@ export class DashboardService {
    * Start the dashboard service
    */
   start(): void {
-    const channelId = process.env.INVITE_DASHBOARD_CHANNEL_ID;
+    const channelId = process.env.INVITE_UI_CHANNEL_ID;
     if (!channelId) {
-      console.warn('[Dashboard] INVITE_DASHBOARD_CHANNEL_ID not set, dashboard disabled');
+      console.warn('[Dashboard] INVITE_UI_CHANNEL_ID not set, dashboard disabled');
       return;
     }
 
@@ -51,7 +51,7 @@ export class DashboardService {
    */
   async updateDashboard(): Promise<void> {
     try {
-      const channelId = process.env.INVITE_DASHBOARD_CHANNEL_ID;
+      const channelId = process.env.INVITE_UI_CHANNEL_ID;
       if (!channelId) return;
 
       const channel = (await this.client.channels.fetch(channelId)) as TextChannel;

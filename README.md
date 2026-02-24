@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**Discord server join tracking system from Invite Links with Dashboard and API Server**
+**Discord server join tracking via personal invite links (button-based) with UI channel, leaderboard, and API**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -34,12 +34,12 @@
 
 ### 🤖 Discord Bot
 
-- 🔗 **Auto Invite Tracking** - Automatically tracks Invite Links created by users
-- 👥 **Join Detection** - Records server joins when someone uses an Invite
-- 📊 **Dashboard Display** - Shows Top Inviters Leaderboard in a text channel
-- 📈 **Statistics Command** - `/invite-stats` command to view invite statistics
-- 🔄 **Auto Updates** - Dashboard updates automatically every 5 minutes
-- 🔄 **Sync Command** - `/sync-invites` command to sync invites from server
+- 🔗 **Personal Invite Links** - Users get one invite link per person via the **Generate invite link** button (no manual link creation)
+- 👥 **Join Tracking** - Only joins from these button-created links are counted
+- 📊 **Invite UI Channel** (`INVITE_UI_CHANNEL_ID`) - Status log (last 10 invite successes) + 3 buttons: Check my link, Generate invite link, How many did I invite
+- 🏆 **Leaderboard Channel** (`INVITE_LEADERBOARD_CHANNEL_ID`) - All Time and monthly Top 10 (optional)
+- 📈 **Statistics** - `/invite-stats` and button **How many did I invite** show invite counts
+- 🔄 **Sync Command** - `/sync-invites` (Admin) to sync invites from server
 
 ### 🌐 API Server
 
@@ -123,7 +123,7 @@ nano .env  # or use your preferred editor
 DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_client_id_here
 GUILD_ID=your_guild_id_here
-INVITE_DASHBOARD_CHANNEL_ID=your_dashboard_channel_id_here
+INVITE_UI_CHANNEL_ID=your_ui_channel_id_here
 MONGO_URI=mongodb://localhost:27017/honorbot
 ```
 
@@ -173,7 +173,7 @@ docker-compose exec invite-tracker-bot node dist/deploy-commands.js
 ### 6️⃣ Verify Installation
 
 - ✅ Bot should be online in your Discord server
-- ✅ Dashboard should display in the configured channel (`INVITE_DASHBOARD_CHANNEL_ID`)
+- ✅ Invite UI (log + control buttons) should display in the configured channel (`INVITE_UI_CHANNEL_ID`)
 - ✅ API should be running at `http://localhost:3001`
 - ✅ Check health: `curl http://localhost:3001/api/health`
 
@@ -190,7 +190,9 @@ docker-compose exec invite-tracker-bot node dist/deploy-commands.js
 | `DISCORD_TOKEN`               | Discord bot token             | ✅ Yes      | -             |
 | `CLIENT_ID`                   | Discord application client ID | ✅ Yes      | -             |
 | `GUILD_ID`                    | Discord server (guild) ID     | ⚠️ Optional | -             |
-| `INVITE_DASHBOARD_CHANNEL_ID` | Channel ID for dashboard      | ✅ Yes      | -             |
+| `INVITE_UI_CHANNEL_ID` | Channel for invite log + control buttons | ✅ Yes      | -             |
+| `INVITE_LEADERBOARD_CHANNEL_ID` | Channel ID for invite leaderboard (All Time + monthly) | ❌ No | - |
+| `INVITE_LINK_CHANNEL_ID`     | Channel used to create invite links (optional; defaults to system channel) | ❌ No | - |
 | `MONGO_URI`                   | MongoDB connection string     | ✅ Yes      | -             |
 | `API_URL`                     | API server URL                | ❌ No       | -             |
 | `API_SECRET_KEY`              | API secret key                | ❌ No       | -             |
@@ -455,7 +457,7 @@ http://localhost:3001/api
 | `POST` | `/joins`                | Record a member join                             | ✅ Yes        |
 | `GET`  | `/stats/:userId`        | Get user statistics (unique users + total joins) | ❌ No         |
 | `GET`  | `/stats/:userId/history` | Get historical stats with date range              | ❌ No         |
-| `GET`  | `/leaderboard`          | Get invite leaderboard (unique users)             | ❌ No         |
+| `GET`  | `/leaderboard`          | Get invite leaderboard (optional `?year=&month=` for monthly) | ❌ No         |
 | `GET`  | `/invites/:userId`      | Get user's invites                               | ❌ No         |
 | `GET`  | `/joins/:inviterId`     | Get join records for inviter (with date filter)  | ❌ No         |
 | `GET`  | `/history/:guildId`     | Get all join history for guild (with filters)    | ❌ No         |
@@ -468,6 +470,14 @@ See more details at [API Documentation](./api/README.md)
 ---
 
 ## 🤖 Bot Commands
+
+### Invite controls (buttons in `INVITE_UI_CHANNEL_ID`)
+
+Users interact via buttons only (no typing):
+
+- **Check my link** – Shows your personal invite link or prompts you to generate one
+- **Generate invite link** – Creates your one-time personal link (never expires, unlimited uses). If you already have one, shows it instead
+- **How many did I invite** – Shows how many members you have invited
 
 ### `/invite-stats [user]`
 
@@ -506,19 +516,33 @@ See more details at [Bot Documentation](./bot/README.md)
 
 ---
 
-## 📊 Dashboard
+## 📊 Invite UI & Leaderboard
 
-The dashboard automatically displays in the configured channel (`INVITE_DASHBOARD_CHANNEL_ID`) showing:
+### Invite UI Channel (`INVITE_UI_CHANNEL_ID`)
 
-- 🏆 **Top 10 Inviters** - Users who invited the most unique members
-- 📈 **Total Statistics** - Overall statistics
-- 🔄 **Auto Updates** - Updates automatically every 5 minutes
+The bot posts two messages in this channel:
 
-### 📊 Invite Counting Logic
+1. **Invite Controls** – Embed with 3 buttons (use buttons only; no slash command for generating links):
+   - **Check my link** – View your personal invite link (if you have one)
+   - **Generate invite link** – Create your personal invite link (one per user, never expires)
+   - **How many did I invite** – See how many members you invited
 
-- **Unique Users**: Each user is counted only once, even if they join multiple times
-- **Total Joins**: Total number of join events (includes multiple joins by same user)
-- Example: If user A joins once and user B joins twice → Unique Users = 2, Total Joins = 3
+2. **Status Log - Invite Successes** – Last 10 successful invites from personal links. Updates every 1 minute and when someone joins via a personal link.
+
+### Leaderboard Channel (`INVITE_LEADERBOARD_CHANNEL_ID`, optional)
+
+If set, the bot posts a message with two embeds:
+
+- **Invite Rankings - All Time (Top 10)**
+- **Invite Rankings - (Month Year) (Top 10)**
+
+Updates every 5 minutes.
+
+### Invite Counting Logic
+
+- **Only button-created links** – Joins are counted only when the invite was created via **Generate invite link**. Old or manually created links are not counted.
+- **Unique users** – Each invited member is counted once per inviter, even if they leave and rejoin.
+- **Personal link** – One link per user per server; links do not expire and have unlimited uses.
 
 ---
 
@@ -531,10 +555,10 @@ The dashboard automatically displays in the configured channel (`INVITE_DASHBOAR
 - ✅ Check that bot has necessary permissions in server
 - ✅ Check MongoDB connection
 
-### Dashboard Not Displaying
+### Invite UI Not Displaying
 
-- ✅ Check that `INVITE_DASHBOARD_CHANNEL_ID` is correct
-- ✅ Check that bot has permission to send messages in that channel
+- ✅ Check that `INVITE_UI_CHANNEL_ID` is correct
+- ✅ Check that bot has permission to send messages and embed links in that channel
 - ✅ Check logs: `docker-compose logs -f invite-tracker-bot`
 
 ### Commands Not Working

@@ -17,7 +17,13 @@ export async function execute(member: GuildMember) {
       return;
     }
 
-    await trackingService.trackMemberJoin(member);
+    const recorded = await trackingService.trackMemberJoin(member);
+    if (recorded) {
+      const inviteUI = (client as any).inviteUIService;
+      if (inviteUI && typeof inviteUI.updateStatusLog === 'function') {
+        inviteUI.updateStatusLog().catch((err: Error) => console.error('[GuildMemberAdd] Error updating invite log:', err));
+      }
+    }
   } catch (error) {
     console.error('[GuildMemberAdd] Error:', error);
   }

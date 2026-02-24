@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { JoinRecord } from '../models/JoinRecord';
 import { Invite } from '../models/Invite';
+import { PersonalInvite } from '../models/PersonalInvite';
 import mongoose from 'mongoose';
 import { MONGODB_CONNECTED } from '../utils/connectDB';
 
@@ -92,13 +93,14 @@ router.get('/stats/:userId', async (req: Request, res: Response) => {
     if (guildId) {
       matchQuery.guildId = guildId;
     }
+    const joinMatchQuery = { ...matchQuery, isPersonalInvite: true };
 
     const [totalInvites, totalJoins, uniqueUsersResult, activeInvites] = await Promise.all([
       Invite.countDocuments(matchQuery),
-      JoinRecord.countDocuments(matchQuery),
-      // Count unique users
+      JoinRecord.countDocuments(joinMatchQuery),
+      // Count unique users (personal invites only)
       JoinRecord.aggregate([
-        { $match: matchQuery },
+        { $match: joinMatchQuery },
         {
           $group: {
             _id: '$userId',
@@ -147,7 +149,7 @@ router.get('/stats/:userId', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/leaderboard - Get invite leaderboard
+// GET /api/leaderboard - Get invite leaderboard (optional query: year, month for monthly)
 router.get('/leaderboard', async (req: Request, res: Response) => {
   try {
     if (mongoose.connection.readyState !== MONGODB_CONNECTED) {
@@ -157,8 +159,10 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
       });
     }
 
-    const { guildId, limit = '10' } = req.query;
+    const { guildId, limit = '10', year, month } = req.query;
     const limitNum = parseInt(limit as string, 10);
+    const yearNum = year ? parseInt(year as string, 10) : null;
+    const monthNum = month ? parseInt(month as string, 10) : null;
 
     if (!guildId) {
       return res.status(400).json({
@@ -167,9 +171,30 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
       });
     }
 
+    let dateRange: { start?: Date; end?: Date } = {};
+    const matchStage: any = { guildId, isPersonalInvite: true };
+    if (yearNum != null && monthNum != null && !isNaN(yearNum) && !isNaN(monthNum)) {
+      dateRange.start = new Date(yearNum, monthNum - 1, 1);
+      dateRange.end = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      matchStage.joinedAt = { $gte: dateRange.start, $lte: dateRange.end };
+    }
+
+    const lookupExprAnd: any[] = [
+      { $eq: ['$inviterId', '$$inviterId'] },
+      { $eq: ['$guildId', guildId] },
+      { $eq: ['$isPersonalInvite', true] },
+    ];
+    if (dateRange.start && dateRange.end) {
+      lookupExprAnd.push(
+        { $gte: ['$joinedAt', dateRange.start] },
+        { $lte: ['$joinedAt', dateRange.end] }
+      );
+    }
+    const lookupMatch = { $expr: { $and: lookupExprAnd } };
+
     // Count unique users per inviter (not total joins)
     const leaderboard = await JoinRecord.aggregate([
-      { $match: { guildId } },
+      { $match: matchStage },
       // First group: Get unique inviter-user pairs
       {
         $group: {
@@ -192,16 +217,7 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
           from: 'joinrecords',
           let: { inviterId: '$_id' },
           pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$inviterId', '$$inviterId'] },
-                    { $eq: ['$guildId', guildId] },
-                  ],
-                },
-              },
-            },
+            { $match: lookupMatch },
             { $count: 'total' },
           ],
           as: 'totalJoinsData',
@@ -257,16 +273,28 @@ router.get('/invites/:userId', async (req: Request, res: Response) => {
     }
 
     const query: any = { inviterId: userId };
-    if (guildId) {
-      query.guildId = guildId;
+    const guildIdStr = guildId as string | undefined;
+    if (guildIdStr) {
+      query.guildId = guildIdStr;
     }
 
-    const invites = await Invite.find(query).sort({ createdAt: -1 });
+    const [invites, personalInvite] = await Promise.all([
+      Invite.find(query).sort({ createdAt: -1 }).lean(),
+      guildIdStr
+        ? PersonalInvite.findOne({ userId, guildId: guildIdStr }).lean()
+        : Promise.resolve(null),
+    ]);
 
-    res.json({
-      success: true,
-      data: invites,
-    });
+    const payload: any = { success: true, data: invites };
+    if (personalInvite) {
+      payload.personalInvite = {
+        inviteCode: personalInvite.inviteCode,
+        url: `https://discord.gg/${personalInvite.inviteCode}`,
+        createdAt: personalInvite.createdAt,
+      };
+    }
+
+    res.json(payload);
   } catch (error) {
     console.error('[API] Error getting invites:', error);
     res.status(500).json({

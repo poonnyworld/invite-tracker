@@ -6,6 +6,7 @@ export interface IJoinRecord extends Document {
   inviteCode: string;
   guildId: string;
   joinedAt: Date;
+  isPersonalInvite?: boolean;
   createdAt: Date;
 }
 
@@ -35,6 +36,11 @@ const JoinRecordSchema: Schema = new Schema(
       type: Date,
       required: true,
       default: Date.now,
+    },
+    isPersonalInvite: {
+      type: Boolean,
+      default: true,
+      index: true,
     },
   },
   {

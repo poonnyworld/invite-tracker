@@ -75,7 +75,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       try {
         clearResult = await trackingService.clearGuildData(testGuildId);
         console.log(
-          `[SyncInvites] Cleared test server data: ${clearResult.invitesDeleted} invites, ${clearResult.joinsDeleted} join records`
+          `[SyncInvites] Cleared test server data: ${clearResult.invitesDeleted} invites, ${clearResult.joinsDeleted} join records, ${clearResult.personalInvitesDeleted} personal invites`
         );
       } catch (error) {
         console.error('[SyncInvites] Error clearing test data:', error);
@@ -126,7 +126,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (clearTestData && testGuildId && clearResult) {
       resultEmbed.addFields({
         name: '🗑️ Test Server Cleanup',
-        value: `✅ Cleared data from test server (Guild ID: ${testGuildId})\n**Invites Deleted:** ${clearResult.invitesDeleted}\n**Join Records Deleted:** ${clearResult.joinsDeleted}`,
+        value: `✅ Cleared data from test server (Guild ID: ${testGuildId})\n**Invites Deleted:** ${clearResult.invitesDeleted}\n**Join Records Deleted:** ${clearResult.joinsDeleted}\n**Personal Invites Deleted:** ${clearResult.personalInvitesDeleted}`,
         inline: false,
       });
     } else if (clearTestData && testGuildId) {
