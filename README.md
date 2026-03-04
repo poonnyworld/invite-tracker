@@ -350,6 +350,8 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
    docker-compose up -d --build
    ```
 
+   When used in the shared dev setup, the API is exposed on host port **3013** and MongoDB on **27020** to avoid port conflicts.
+
 4. **Deploy commands:**
    ```bash
    docker-compose exec invite-tracker-bot node dist/deploy-commands.js

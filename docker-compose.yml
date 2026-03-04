@@ -5,17 +5,17 @@ services:
     container_name: invite-tracker-mongodb
     restart: unless-stopped
     ports:
-      - "27018:27017"
+      - "27020:27017"   # โฮสต์ 27020 (ไม่ใช้ 27018 เพื่อไม่ชน process อื่น)
     environment:
       MONGO_INITDB_DATABASE: honorbot
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "mongosh", "localhost:27017", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 10s
       retries: 5
-      start_period: 10s
+      start_period: 20s
     networks:
       - invite-tracker-network
 
@@ -57,7 +57,7 @@ services:
       mongodb:
         condition: service_healthy
     ports:
-      - "3001:3001"
+      - "3013:3001"   # โฮสต์ 3013 (3011 ถูกใช้แล้ว)
     env_file:
       - ./api/.env
     environment:
