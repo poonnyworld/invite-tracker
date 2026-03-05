@@ -302,10 +302,9 @@ docker-compose down -v
 
 ### Individual Services
 
-```bash
-# Start only MongoDB
-docker-compose up -d mongodb
+Invite-tracker uses the **shared MongoDB** from `honor-points-service` (same host `honorbot-mongodb`). Start stack 1 (honor-points-service) before invite-tracker.
 
+```bash
 # Start Bot
 docker-compose up -d invite-tracker-bot
 
@@ -350,7 +349,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
    docker-compose up -d --build
    ```
 
-   When used in the shared dev setup, the API is exposed on host port **3013** and MongoDB on **27020** to avoid port conflicts.
+   In the shared dev setup, invite-tracker uses the same MongoDB as honor-points-service (no separate MongoDB). Start stack 1 first. API is exposed on host port **3013**.
 
 4. **Deploy commands:**
    ```bash
@@ -594,9 +593,8 @@ Updates every 5 minutes.
 
 ### MongoDB Connection Issues
 
-- ✅ Check that MongoDB is running: `docker-compose ps mongodb`
-- ✅ Check connection string in `.env`
-- ✅ For Docker: use `mongodb://mongodb:27017/honorbot`
+- ✅ In shared dev setup, MongoDB is provided by honor-points-service (stack 1). Ensure stack 1 is running first.
+- ✅ Check connection string in `.env` (Docker sets `MONGO_URI=mongodb://honorbot-mongodb:27017/honorbot`)
 - ✅ For local: use `mongodb://localhost:27017/honorbot`
 
 ---
